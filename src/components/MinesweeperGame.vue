@@ -1,7 +1,10 @@
 <template>
-  <p>numMines: {{ numMines }}</p>
-  <game-toolbar ref="toolbar" :num-mines="numMines" :width="boardWidth"></game-toolbar>
-  <div :style="{ width: boardWidth, height: boardHeight}">
+  <game-toolbar
+    ref="toolbar"
+    :num-mines="numMines"
+    :width="boardWidth"
+  ></game-toolbar>
+  <div :style="{ width: boardWidth, height: boardHeight }">
     <div v-for="y in height" :key="y">
       <minesweeper-cell
         v-for="x in width"
@@ -16,24 +19,30 @@
       ></minesweeper-cell>
     </div>
   </div>
+  <game-end v-if="gameIsWon" type="win" @playAgain="startGame"></game-end>
+  <game-end v-if="gameIsLost" type="loss" @playAgain="startGame"></game-end>
 </template>
 
 <script>
 import { createField } from "../helper";
 import MinesweeperCell from "./MinesweeperCell.vue";
 import GameToolbar from "./GameToolbar.vue";
+import GameEnd from "./GameEnd.vue";
 
 export default {
-  components: { MinesweeperCell, GameToolbar },
+  components: { MinesweeperCell, GameToolbar, GameEnd },
   data() {
     return {
       // global controls for board size & mines:
-      height: 13,
-      width: 13,
+      height: 10,
+      width: 10,
       numMines: 20,
       cellSideLength: 40, // cell side length in px used for sizing the board dynamically
       // trackers
       numRevealed: 0,
+      gameIsWon: false,
+      gameIsLost: false,
+      refreshField: 0,
     };
   },
   computed: {
@@ -42,19 +51,20 @@ export default {
       return this.width * this.height - this.numMines - this.numRevealed;
     },
     field() {
+      this.refreshField;
       return createField(this.height, this.width, this.numMines);
     },
     boardWidth() {
-      return (this.width * this.cellSideLength).toString() + 'px';
+      return (this.width * this.cellSideLength).toString() + "px";
     },
     boardHeight() {
-      return (this.height * this.cellSideLength).toString() + 'px';
+      return (this.height * this.cellSideLength).toString() + "px";
     },
   },
   watch: {
     cellsLeft(value) {
       if (value === 0) {
-        alert("You Won!");
+        this.endGame("win");
       }
     },
   },
@@ -107,7 +117,7 @@ export default {
     },
     cellRevealed(coords, isMine, label) {
       if (isMine) {
-        alert("Game Over!");
+        this.endGame("loss");
       } else {
         // decrease num of cells left
         this.numRevealed += 1;
@@ -125,6 +135,28 @@ export default {
     },
     updateMarked(value) {
       this.$refs.toolbar.updateFlags(value);
+    },
+    endGame(result) {
+      if (result === "win") {
+        this.gameIsWon = true;
+      } else if (result === "loss") {
+        this.gameIsLost = true;
+      }
+    },
+    startGame() {
+      this.numRevealed = 0;
+      this.gameIsWon = false;
+      this.gameIsLost = false;
+      // refresh mine count
+      this.$refs.toolbar.numFlags = this.numMines
+      // refresh field
+      this.refreshField += 1;
+      const cellList = this.$refs.cells;
+      cellList.forEach(function (cell) {
+        cell.revealed = false;
+        cell.marked = false;
+
+      });
     },
   },
 };

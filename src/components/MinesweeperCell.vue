@@ -1,11 +1,11 @@
 <template>
   <div
     class="cell"
-    :style="{ backgroundColor: color, width: sideLengthPX, height: sideLengthPX}"
+    :style="{ backgroundColor: backgroundColor, width: sideLengthPX, height: sideLengthPX}"
     @click="reveal"
     @click.right="mark"
   >
-    <p v-if="revealed">{{ label }}</p>
+    <p v-if="revealed" :style="{color: numColor}">{{ Number(label) === 0? '' : label }}</p>
     <p v-else-if="marked">*</p>
   </div>
 </template>
@@ -41,7 +41,7 @@ export default {
     };
   },
   computed: {
-    color() {
+    backgroundColor() {
       if ((this.coords[0] + this.coords[1]) % 2 === 0) {
         // dark
         if (this.revealed) {
@@ -57,6 +57,10 @@ export default {
           return "#92DF90";
         }
       }
+    },
+    numColor() {
+        const numColors = ['','blue','darkgreen','red','purple','maroon','cyan','black','dim gray']
+        return numColors[Number(this.label)]
     },
     sideLengthPX() {
         return this.sideLength.toString() + 'px'

@@ -1,5 +1,7 @@
 <template>
-    <div class='toolbar' :style="{width: width}">TOOLBAR {{numFlags}}</div>
+    <div class='toolbar' :style="{width: width}">
+        <p> Mines Left: {{numFlags}} </p>
+    </div>
 </template>
 
 <script>
@@ -30,6 +32,13 @@ export default ({
 
 <style scoped>
 .toolbar {
-    background-color: green;
+    background-color: #4A752C;
+    height: 30px;
+    line-height: 30px;
 }
+p {
+    text-align: center;
+    color: white;
+}
+
 </style>
