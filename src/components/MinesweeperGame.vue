@@ -1,11 +1,14 @@
 <template>
   <div class="field">
-    <minesweeper-cell
-      v-for="n in numCells"
-      :key="n"
-      :coords="coordList[n-1]"
-      :is-mine="mineList[n-1]"
-    ></minesweeper-cell>
+    <div v-for="y in height" :key="y">
+      <minesweeper-cell
+        v-for="x in width"
+        :key="[x, y]"
+        :coords="[x - 1, y - 1]"
+        :is-mine="field[y - 1][x - 1]"
+        :label="getLabel(x - 1, y - 1)"
+      ></minesweeper-cell>
+    </div>
   </div>
 </template>
 
@@ -13,18 +16,20 @@
 import MinesweeperCell from "./MinesweeperCell.vue";
 
 function shuffle(array) {
-  let currentIndex = array.length,  randomIndex;
+  let currentIndex = array.length,
+    randomIndex;
 
   // While there remain elements to shuffle.
   while (currentIndex != 0) {
-
     // Pick a remaining element.
     randomIndex = Math.floor(Math.random() * currentIndex);
     currentIndex--;
 
     // And swap it with the current element.
     [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex], array[currentIndex]];
+      array[randomIndex],
+      array[currentIndex],
+    ];
   }
 
   return array;
@@ -51,31 +56,65 @@ export default {
   components: { MinesweeperCell },
   data() {
     return {
-      bombCount: this.numBombs,
-      numCells: this.height*this.width,
-      coordList: this.createCoordList(),
-      mineList: this.createMineList(),
+      numMines: this.numBombs,
+      numCells: this.height * this.width,
+      field: this.createField(),
     };
   },
   methods: {
-    createCoordList() {
-      let coordList = [];
-      for (let x = 0; x < this.width; x++) {
-        for (let y = 0; y < this.height; y++) {
-          coordList.push([x, y]);
+    createField() {
+      // create list with mines, shuffle, transform into 2d array, give non-mines numbers
+      let mineList = [];
+      for (let i = 0; i < this.numBombs; i++) {
+        mineList.push(true);
+      }
+      while (mineList.length < this.width * this.height) {
+        mineList.push(false);
+      }
+      const temp = shuffle(mineList);
+      let field = [];
+      for (let row = 0; row < this.height; row++) {
+        const rowStart = row * this.width;
+        const rowEnd = rowStart + this.width;
+        field.push(temp.slice(rowStart, rowEnd));
+      }
+      return field;
+    },
+    getLabel(x, y) {
+      // if mine, set label to '*'
+      if (this.field[y][x]) {
+        return "*";
+      }
+      // if not a mine, tally neighbors that are mines
+      const potentialNeighbors = [
+        [x + 1, y + 1],
+        [x + 1, y],
+        [x + 1, y - 1],
+        [x, y + 1],
+        [x, y - 1],
+        [x - 1, y + 1],
+        [x - 1, y],
+        [x - 1, y - 1],
+      ];
+      const neighbors = [];
+      const w = this.width
+      const h = this.height
+      potentialNeighbors.forEach(function (coords) {
+        const r = coords[0];
+        const c = coords[1];
+        if (r >= 0 && c >= 0 && r < w && c < h) {
+          neighbors.push([r, c]);
+        }
+      });
+      let adjacentMines = 0;
+      for (let i = 0; i < neighbors.length; i++) {
+        const r = neighbors[i][1];
+        const c = neighbors[i][0];
+        if (this.field[r][c]) {
+          adjacentMines++;
         }
       }
-      return coordList;
-    },
-    createMineList(){
-        let mineList = []
-        for (let i=0; i<this.numBombs; i++){
-            mineList.push(true)
-        }
-        while (mineList.length < this.width*this.height){
-            mineList.push(false)
-        }
-        return shuffle(mineList)
+      return adjacentMines.toString();
     },
   },
 };
@@ -86,7 +125,7 @@ h2 {
   color: blue;
 }
 .field {
-  width: 300px;
-  height: 300px;
+  width: 650px;
+  height: 750px;
 }
 </style>

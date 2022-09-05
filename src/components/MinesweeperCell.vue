@@ -1,5 +1,5 @@
 <template>
-  <div class="cell" :style="{backgroundColor: color}" @click="reveal">{{isMine}}</div>
+  <div class="cell" :style="{backgroundColor: color}" @click="reveal">{{label}}</div>
 </template>
 
 <script>
@@ -12,12 +12,16 @@ export default {
         isMine: {
             type: Boolean,
             required: true
+        },
+        label: {
+            type: String,
+            required: true
         }
     },
     data() {
         return {
             revealed: false,
-            marked: false
+            marked: false,
         }
     }, 
     computed: {
@@ -42,15 +46,16 @@ export default {
             if (!this.revealed && !this.marked) {
                 this.revealed = true
             }
-        }
+        },
     }
 }
 </script>
 
 <style scoped>
 .cell {
-  height: 30px;
-  width: 30px;
+  width: 50px;
+  height: 50px;
   float: left;
 }
 </style>
+

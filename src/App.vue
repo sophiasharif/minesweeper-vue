@@ -1,17 +1,11 @@
 <template>
-  <minesweeper-game :width="10" :height="10" :num-bombs="10"></minesweeper-game>
+  <minesweeper-game :width="13" :height="15" :num-bombs="50"></minesweeper-game>
 </template>
 
 <script>
 import MinesweeperGame from "./components/MinesweeperGame.vue";
 export default {
   components: { MinesweeperGame },
-  data() {
-    return {
-      helloWorld: "heelo wordl1!!",
-    };
-  },
-  methods: {},
 };
 </script>
 
