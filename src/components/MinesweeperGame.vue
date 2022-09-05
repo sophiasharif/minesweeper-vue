@@ -1,4 +1,5 @@
 <template>
+  <game-toolbar ref="toolbar" :num-mines="numBombs"></game-toolbar>
   <div class="field">
     <div v-for="y in height" :key="y">
       <minesweeper-cell
@@ -9,6 +10,7 @@
         :is-mine="field[y - 1][x - 1]"
         :label="getLabel(x - 1, y - 1)"
         @cellRevealed="cellRevealed"
+        @updateMarked="updateMarked"
       ></minesweeper-cell>
     </div>
   </div>
@@ -16,6 +18,7 @@
 
 <script>
 import MinesweeperCell from "./MinesweeperCell.vue";
+import GameToolbar from "./GameToolbar.vue";
 
 export default {
   props: {
@@ -35,17 +38,32 @@ export default {
       default: 15,
     },
   },
-  components: { MinesweeperCell },
+  components: { MinesweeperCell, GameToolbar },
   data() {
     return {
-      numMines: this.numBombs,
       numCells: this.height * this.width,
+      numRevealed: 0,
       field: this.createField(),
     };
   },
+  computed: {
+    cellsLeft() {
+      return this.numCells - this.Bombs - this.numRevealed
+    }
+  },
+  watch: {
+    cellsLeft(value) {
+      console.log(this.cellsLeft)
+      if (value === 0) {
+        alert("You Won!");
+      }
+    },
+  },
   methods: {
     getRefNum(x, y) {
-      return y*this.width + x;
+      // create a unique reference number for each cell that
+      // corresponds with its index in this.$refs.cells
+      return y * this.width + x;
     },
     createField() {
       // create list with mines, shuffle, transform into 2d array, give non-mines numbers
@@ -71,7 +89,7 @@ export default {
         return "*";
       }
       // if not a mine, tally neighbors that are mines
-      const neighbors = this.getNeighbors(x, y)
+      const neighbors = this.getNeighbors(x, y);
       let adjacentMines = 0;
       for (let i = 0; i < neighbors.length; i++) {
         const r = neighbors[i][1];
@@ -82,7 +100,8 @@ export default {
       }
       return adjacentMines.toString();
     },
-    getNeighbors(x, y) { // returns valid neighbors of cell with given coords
+    getNeighbors(x, y) {
+      // returns valid neighbors of cell with given coords
       const potentialNeighbors = [
         [x + 1, y + 1],
         [x + 1, y],
@@ -103,21 +122,29 @@ export default {
           neighbors.push([r, c]);
         }
       });
-      return neighbors
+      return neighbors;
     },
     cellRevealed(coords, isMine, label) {
-      if (label === "0") {
-        const neighbors = this.getNeighbors(coords[0], coords[1])
-        const that = this
-        neighbors.forEach(function(coords) {
-          const refNum = that.getRefNum(coords[0],coords[1])
-          const neighborCell = that.$refs.cells[refNum]
-          neighborCell.reveal()
-        })
+      if (isMine) {
+        alert("Game Over!");
+      } else {
+        // decrease num of cells left
+        this.numRevealed += 1
+        console.log(this.cellsLeft)
+        // if there are no bombs around, reveal all neighbors
+        if (label === "0") {
+          const neighbors = this.getNeighbors(coords[0], coords[1]);
+          const that = this;
+          neighbors.forEach(function (coords) {
+            const refNum = that.getRefNum(coords[0], coords[1]);
+            const neighborCell = that.$refs.cells[refNum];
+            neighborCell.reveal();
+          });
+        }
       }
-      if (isMine){
-        alert('YOU LOST LMAO')
-      }
+    },
+    updateMarked(value) {
+      this.$refs.toolbar.updateFlags(value);
     },
   },
 };
@@ -142,7 +169,6 @@ function shuffle(array) {
 
   return array;
 }
-
 </script>
 
 <style scoped>

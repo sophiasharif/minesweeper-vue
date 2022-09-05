@@ -1,5 +1,5 @@
 <template>
-  <div class="cell" :style="{backgroundColor: color}" @click="reveal" @click.right="mark()">
+  <div class="cell" :style="{backgroundColor: color}" @click="reveal" @click.right="mark">
     <p v-if="revealed">{{label}}</p>
     <p v-else-if="marked">*</p>
   </div>
@@ -59,7 +59,13 @@ export default {
         },
         mark() {
             if (!this.revealed){
-                this.marked = !this.marked
+                if (this.marked) {
+                    this.marked = false
+                    this.$emit('updateMarked', 1)
+                } else {
+                    this.marked = true
+                    this.$emit('updateMarked', -1)
+                }
             }
         }
     }
