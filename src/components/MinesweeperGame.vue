@@ -3,10 +3,12 @@
     <div v-for="y in height" :key="y">
       <minesweeper-cell
         v-for="x in width"
-        :key="[x, y]"
+        :key="getRefNum(x, y)"
+        ref="cells"
         :coords="[x - 1, y - 1]"
         :is-mine="field[y - 1][x - 1]"
         :label="getLabel(x - 1, y - 1)"
+        @cellRevealed="cellRevealed"
       ></minesweeper-cell>
     </div>
   </div>
@@ -14,26 +16,6 @@
 
 <script>
 import MinesweeperCell from "./MinesweeperCell.vue";
-
-function shuffle(array) {
-  let currentIndex = array.length,
-    randomIndex;
-
-  // While there remain elements to shuffle.
-  while (currentIndex != 0) {
-    // Pick a remaining element.
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-
-    // And swap it with the current element.
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex],
-      array[currentIndex],
-    ];
-  }
-
-  return array;
-}
 
 export default {
   props: {
@@ -62,6 +44,9 @@ export default {
     };
   },
   methods: {
+    getRefNum(x, y) {
+      return y*this.width + x;
+    },
     createField() {
       // create list with mines, shuffle, transform into 2d array, give non-mines numbers
       let mineList = [];
@@ -86,6 +71,18 @@ export default {
         return "*";
       }
       // if not a mine, tally neighbors that are mines
+      const neighbors = this.getNeighbors(x, y)
+      let adjacentMines = 0;
+      for (let i = 0; i < neighbors.length; i++) {
+        const r = neighbors[i][1];
+        const c = neighbors[i][0];
+        if (this.field[r][c]) {
+          adjacentMines++;
+        }
+      }
+      return adjacentMines.toString();
+    },
+    getNeighbors(x, y) { // returns valid neighbors of cell with given coords
       const potentialNeighbors = [
         [x + 1, y + 1],
         [x + 1, y],
@@ -97,8 +94,8 @@ export default {
         [x - 1, y - 1],
       ];
       const neighbors = [];
-      const w = this.width
-      const h = this.height
+      const w = this.width;
+      const h = this.height;
       potentialNeighbors.forEach(function (coords) {
         const r = coords[0];
         const c = coords[1];
@@ -106,18 +103,46 @@ export default {
           neighbors.push([r, c]);
         }
       });
-      let adjacentMines = 0;
-      for (let i = 0; i < neighbors.length; i++) {
-        const r = neighbors[i][1];
-        const c = neighbors[i][0];
-        if (this.field[r][c]) {
-          adjacentMines++;
-        }
+      return neighbors
+    },
+    cellRevealed(coords, isMine, label) {
+      if (label === "0") {
+        const neighbors = this.getNeighbors(coords[0], coords[1])
+        const that = this
+        neighbors.forEach(function(coords) {
+          const refNum = that.getRefNum(coords[0],coords[1])
+          const neighborCell = that.$refs.cells[refNum]
+          neighborCell.reveal()
+        })
       }
-      return adjacentMines.toString();
+      if (isMine){
+        alert('YOU LOST LMAO')
+      }
     },
   },
 };
+
+// HELPER FUNCTIONS
+function shuffle(array) {
+  let currentIndex = array.length,
+    randomIndex;
+
+  // While there remain elements to shuffle.
+  while (currentIndex != 0) {
+    // Pick a remaining element.
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    // And swap it with the current element.
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex],
+      array[currentIndex],
+    ];
+  }
+
+  return array;
+}
+
 </script>
 
 <style scoped>
