@@ -1,5 +1,5 @@
 <template>
-  <minesweeper-game :width="13" :height="15" :num-bombs="15"></minesweeper-game>
+  <minesweeper-game></minesweeper-game>
 </template>
 
 <script>

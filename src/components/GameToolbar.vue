@@ -1,5 +1,5 @@
 <template>
-    <div class='toolbar'>TOOLBAR {{numFlags}}</div>
+    <div class='toolbar' :style="{width: width}">TOOLBAR {{numFlags}}</div>
 </template>
 
 <script>
@@ -7,6 +7,10 @@ export default ({
     props: {
         numMines: {
             type: Number,
+            required: true
+        },
+        width: {
+            type: String,
             required: true
         }
     },
@@ -27,6 +31,5 @@ export default ({
 <style scoped>
 .toolbar {
     background-color: green;
-    width: 650px;
 }
 </style>

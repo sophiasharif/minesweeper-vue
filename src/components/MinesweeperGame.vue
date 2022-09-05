@@ -1,6 +1,7 @@
 <template>
-  <game-toolbar ref="toolbar" :num-mines="numBombs"></game-toolbar>
-  <div class="field">
+  <p>numMines: {{ numMines }}</p>
+  <game-toolbar ref="toolbar" :num-mines="numMines" :width="boardWidth"></game-toolbar>
+  <div :style="{ width: boardWidth, height: boardHeight}">
     <div v-for="y in height" :key="y">
       <minesweeper-cell
         v-for="x in width"
@@ -9,6 +10,7 @@
         :coords="[x - 1, y - 1]"
         :is-mine="field[y - 1][x - 1]"
         :label="getLabel(x - 1, y - 1)"
+        :side-length="cellSideLength"
         @cellRevealed="cellRevealed"
         @updateMarked="updateMarked"
       ></minesweeper-cell>
@@ -17,43 +19,40 @@
 </template>
 
 <script>
+import { createField } from "../helper";
 import MinesweeperCell from "./MinesweeperCell.vue";
 import GameToolbar from "./GameToolbar.vue";
 
 export default {
-  props: {
-    width: {
-      type: Number,
-      required: false,
-      default: 10,
-    },
-    height: {
-      type: Number,
-      required: false,
-      default: 10,
-    },
-    numBombs: {
-      type: Number,
-      required: false,
-      default: 15,
-    },
-  },
   components: { MinesweeperCell, GameToolbar },
   data() {
     return {
-      numCells: this.height * this.width,
+      // global controls for board size & mines:
+      height: 13,
+      width: 13,
+      numMines: 20,
+      cellSideLength: 40, // cell side length in px used for sizing the board dynamically
+      // trackers
       numRevealed: 0,
-      field: this.createField(),
     };
   },
   computed: {
     cellsLeft() {
-      return this.numCells - this.Bombs - this.numRevealed
-    }
+      // cells left = total number of cells - number of mines - number revealed
+      return this.width * this.height - this.numMines - this.numRevealed;
+    },
+    field() {
+      return createField(this.height, this.width, this.numMines);
+    },
+    boardWidth() {
+      return (this.width * this.cellSideLength).toString() + 'px';
+    },
+    boardHeight() {
+      return (this.height * this.cellSideLength).toString() + 'px';
+    },
   },
   watch: {
     cellsLeft(value) {
-      console.log(this.cellsLeft)
       if (value === 0) {
         alert("You Won!");
       }
@@ -64,24 +63,6 @@ export default {
       // create a unique reference number for each cell that
       // corresponds with its index in this.$refs.cells
       return y * this.width + x;
-    },
-    createField() {
-      // create list with mines, shuffle, transform into 2d array, give non-mines numbers
-      let mineList = [];
-      for (let i = 0; i < this.numBombs; i++) {
-        mineList.push(true);
-      }
-      while (mineList.length < this.width * this.height) {
-        mineList.push(false);
-      }
-      const temp = shuffle(mineList);
-      let field = [];
-      for (let row = 0; row < this.height; row++) {
-        const rowStart = row * this.width;
-        const rowEnd = rowStart + this.width;
-        field.push(temp.slice(rowStart, rowEnd));
-      }
-      return field;
     },
     getLabel(x, y) {
       // if mine, set label to '*'
@@ -129,8 +110,7 @@ export default {
         alert("Game Over!");
       } else {
         // decrease num of cells left
-        this.numRevealed += 1
-        console.log(this.cellsLeft)
+        this.numRevealed += 1;
         // if there are no bombs around, reveal all neighbors
         if (label === "0") {
           const neighbors = this.getNeighbors(coords[0], coords[1]);
@@ -148,27 +128,6 @@ export default {
     },
   },
 };
-
-// HELPER FUNCTIONS
-function shuffle(array) {
-  let currentIndex = array.length,
-    randomIndex;
-
-  // While there remain elements to shuffle.
-  while (currentIndex != 0) {
-    // Pick a remaining element.
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-
-    // And swap it with the current element.
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex],
-      array[currentIndex],
-    ];
-  }
-
-  return array;
-}
 </script>
 
 <style scoped>
