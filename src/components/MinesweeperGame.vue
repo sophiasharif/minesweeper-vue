@@ -3,6 +3,7 @@
     ref="toolbar"
     :num-mines="numMines"
     :width="boardWidth"
+    @setUpGame="setUpGame"
   ></game-toolbar>
   <div :style="{ width: boardWidth, height: boardHeight }">
     <div v-for="y in height" :key="y">
@@ -37,14 +38,13 @@ export default {
   data() {
     return {
       // global controls for board size & mines:
-      height: 10,
-      width: 10,
-      numMines: 10,
-      cellSideLength: 50, // cell side length in px used for sizing the board dynamically
+      height: 20,
+      width: 24,
+      numMines: 100,
+      cellSideLength: 30, // cell side length in px used for sizing the board dynamically
       // trackers
       numRevealed: 0,
       gameStatus: "",
-      refreshField: 0,
       cellsLocked: false, // lock cells once game ends
       firstClickHappened: false, // used to guarantee first click
       field:[]
@@ -119,6 +119,7 @@ export default {
     },
     cellRevealed(coords, isMine, label) {
       if (!this.firstClickHappened) {
+        console.log("FIRST IF BLOCK: "+ isMine)
         // create a list of indices where there should not be mines
         const clickedCellRefNum = this.getRefNum(coords[0], coords[1])
         let protectedCells = [clickedCellRefNum] // add ref num of clicked cell
@@ -151,6 +152,7 @@ export default {
       }
       if (isMine) {
         // game is lost: show GameEnd element, lock cells, reveal unmarked mines
+        console.log("SECOND IF BLOCK: "+isMine)
         this.gameStatus = "loss";
         this.cellsLocked = true;
         const cellList = this.$refs.cells;
@@ -178,7 +180,11 @@ export default {
       // updates mine count in toolbar
       this.$refs.toolbar.updateFlags(value);
     },
-    startGame() {
+    startGame(width=this.width, height=this.height, numMines=this.numMines, cellSideLength=this.cellSideLength) {
+      this.width = width
+      this.height = height
+      this.numMines = numMines
+      this.cellSideLength = cellSideLength
       // reset trackers
       this.numRevealed = 0;
       this.gameStatus = "";
@@ -186,8 +192,6 @@ export default {
       this.firstClickHappened = false
       // reset mine count
       this.$refs.toolbar.numFlags = this.numMines;
-      // reset field
-      this.refreshField += 1;
       // reset cells
       const cellList = this.$refs.cells;
       cellList.forEach(function (cell) {
@@ -195,6 +199,15 @@ export default {
         cell.marked = false;
       });
     },
+    setUpGame(difficulty){
+      if (difficulty === 'easy') {
+        this.startGame(10, 8, 10, 50)
+      } else if (difficulty === 'medium') {
+        this.startGame(18, 14, 40, 40)
+      } else if (difficulty === 'hard') {
+        this.startGame(24, 20, 100, 30)
+      }
+    }
   },
 };
 </script>
@@ -202,9 +215,5 @@ export default {
 <style scoped>
 h2 {
   color: blue;
-}
-.field {
-  width: 650px;
-  height: 750px;
 }
 </style>
