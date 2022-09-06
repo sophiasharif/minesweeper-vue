@@ -26,10 +26,6 @@ export default {
       type: Array,
       required: true,
     },
-    isMine: {
-      type: Boolean,
-      required: true,
-    },
     label: {
       type: String,
       required: true,
@@ -48,12 +44,13 @@ export default {
       revealed: false,
       marked: false,
       isLight: (this.coords[0] + this.coords[1]) % 2 === 0,
+      isMine: false,
     };
   },
   computed: {
     backgroundColor() {
       if (this.isMine && this.revealed) {
-        return '#DC143C'
+        return "#DC143C";
       } else if ((this.coords[0] + this.coords[1]) % 2 === 0) {
         // dark
         if (this.revealed) {

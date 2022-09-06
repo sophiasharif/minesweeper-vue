@@ -11,7 +11,6 @@
         :key="getRefNum(x, y)"
         ref="cells"
         :coords="[x - 1, y - 1]"
-        :is-mine="field[y - 1][x - 1]"
         :label="getLabel(x - 1, y - 1)"
         :side-length="cellSideLength"
         :cells-locked="cellsLocked"
@@ -39,25 +38,23 @@ export default {
   data() {
     return {
       // global controls for board size & mines:
-      height: 8,
-      width: 8,
-      numMines: 8,
+      height: 10,
+      width: 10,
+      numMines: 20,
       cellSideLength: 50, // cell side length in px used for sizing the board dynamically
       // trackers
       numRevealed: 0,
       gameStatus: "",
       refreshField: 0,
-      cellsLocked: false // lock cells once game ends
+      cellsLocked: false, // lock cells once game ends
+      firstClickHappened: false, // used to guarantee first click
+      field:[]
     };
   },
   computed: {
     cellsLeft() {
       // cells left = total number of cells - number of mines - number revealed
       return this.width * this.height - this.numMines - this.numRevealed;
-    },
-    field() {
-      this.refreshField;
-      return createField(this.height, this.width, this.numMines);
     },
     boardWidth() {
       return (this.width * this.cellSideLength).toString() + "px";
@@ -81,6 +78,10 @@ export default {
       return y * this.width + x;
     },
     getLabel(x, y) {
+      // if first click hasn't happened, assign default value
+      if (!this.firstClickHappened){
+        return "D"
+      }
       // if mine, set label to '*'
       if (this.field[y][x]) {
         return "*";
@@ -122,6 +123,25 @@ export default {
       return neighbors;
     },
     cellRevealed(coords, isMine, label) {
+      if (!this.firstClickHappened) {
+        // create a list of indices where there should not be mines
+        const clickedCellRefNum = this.getRefNum(coords[0], coords[1])
+        let protectedCells = [clickedCellRefNum] // add ref num of clicked cell
+        const neighbors = this.getNeighbors(coords[0], coords[1])
+        for (const n of neighbors) {
+          const nRef = this.getRefNum(n[0], n[1])
+          protectedCells.push(nRef)
+        }
+        this.field = createField(this.height, this.width, this.numMines, protectedCells)
+        // update values of cells
+        for (let y=0; y<this.height; y++){
+          for (let x=0; x<this.width; x++){
+            const cell = this.$refs.cells[this.getRefNum(x, y)]
+            cell.isMine = this.field[y][x]
+          }
+        }
+        this.firstClickHappened = true
+      }
       if (isMine) {
         // game is lost: show GameEnd element, lock cells, reveal unmarked mines
         this.gameStatus = "loss";
@@ -153,11 +173,11 @@ export default {
     startGame() {
       this.numRevealed = 0;
       this.gameStatus = "";
-      console.log(this.cellsLocked)
       this.cellsLocked = false;
       // refresh mine count
       this.$refs.toolbar.numFlags = this.numMines;
       // refresh field
+      this.firstClickHappened = false
       this.refreshField += 1;
       const cellList = this.$refs.cells;
       cellList.forEach(function (cell) {
