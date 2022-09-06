@@ -14,13 +14,18 @@
         :is-mine="field[y - 1][x - 1]"
         :label="getLabel(x - 1, y - 1)"
         :side-length="cellSideLength"
+        :cells-locked="cellsLocked"
         @cellRevealed="cellRevealed"
         @updateMarked="updateMarked"
       ></minesweeper-cell>
     </div>
   </div>
-  <game-end v-if="gameIsWon" type="win" @playAgain="startGame"></game-end>
-  <game-end v-if="gameIsLost" type="loss" @playAgain="startGame"></game-end>
+  <game-end
+    v-if="gameStatus"
+    :type="gameStatus"
+    :width="boardWidth"
+    @playAgain="startGame"
+  ></game-end>
 </template>
 
 <script>
@@ -34,15 +39,15 @@ export default {
   data() {
     return {
       // global controls for board size & mines:
-      height: 10,
-      width: 10,
-      numMines: 20,
-      cellSideLength: 40, // cell side length in px used for sizing the board dynamically
+      height: 8,
+      width: 8,
+      numMines: 8,
+      cellSideLength: 50, // cell side length in px used for sizing the board dynamically
       // trackers
       numRevealed: 0,
-      gameIsWon: false,
-      gameIsLost: false,
+      gameStatus: "",
       refreshField: 0,
+      cellsLocked: false // lock cells once game ends
     };
   },
   computed: {
@@ -64,7 +69,8 @@ export default {
   watch: {
     cellsLeft(value) {
       if (value === 0) {
-        this.endGame("win");
+        this.gameStatus = "win";
+        this.cellsLocked = true;
       }
     },
   },
@@ -117,7 +123,15 @@ export default {
     },
     cellRevealed(coords, isMine, label) {
       if (isMine) {
-        this.endGame("loss");
+        // game is lost: show GameEnd element, lock cells, reveal unmarked mines
+        this.gameStatus = "loss";
+        this.cellsLocked = true;
+        const cellList = this.$refs.cells;
+        cellList.forEach(function (cell) {
+          if (cell.isMine && !cell.revealed) {
+            cell.revealed = true
+          }
+        });
       } else {
         // decrease num of cells left
         this.numRevealed += 1;
@@ -136,26 +150,19 @@ export default {
     updateMarked(value) {
       this.$refs.toolbar.updateFlags(value);
     },
-    endGame(result) {
-      if (result === "win") {
-        this.gameIsWon = true;
-      } else if (result === "loss") {
-        this.gameIsLost = true;
-      }
-    },
     startGame() {
       this.numRevealed = 0;
-      this.gameIsWon = false;
-      this.gameIsLost = false;
+      this.gameStatus = "";
+      console.log(this.cellsLocked)
+      this.cellsLocked = false;
       // refresh mine count
-      this.$refs.toolbar.numFlags = this.numMines
+      this.$refs.toolbar.numFlags = this.numMines;
       // refresh field
       this.refreshField += 1;
       const cellList = this.$refs.cells;
       cellList.forEach(function (cell) {
         cell.revealed = false;
         cell.marked = false;
-
       });
     },
   },

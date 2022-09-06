@@ -22,9 +22,6 @@ function shuffle(array) {
   
   function createField(height, width, numMines) {
         // create list with mines, shuffle, transform into 2d array, give non-mines numbers
-        console.log('width: ' + width)
-        console.log('height: ' + height)
-        console.log('numMines: ' + numMines)
         let mineList = [];
         for (let i = 0; i < numMines; i++) {
           mineList.push(true);

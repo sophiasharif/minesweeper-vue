@@ -8,7 +8,7 @@
 <script>
 
 export default ({
-    props: ['type'],
+    props: ['type', 'width'],
     computed: {
         endMessage() {
             if (this.type === 'win'){

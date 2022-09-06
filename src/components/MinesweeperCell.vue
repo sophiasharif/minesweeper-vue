@@ -1,11 +1,17 @@
 <template>
   <div
     class="cell"
-    :style="{ backgroundColor: backgroundColor, width: sideLengthPX, height: sideLengthPX}"
+    :style="{
+      backgroundColor: backgroundColor,
+      width: sideLengthPX,
+      height: sideLengthPX,
+    }"
     @click="reveal"
     @click.right="mark"
   >
-    <p v-if="revealed" :style="{color: numColor}">{{ Number(label) === 0? '' : label }}</p>
+    <p v-if="revealed" :style="{ color: numColor }">
+      {{ Number(label) === 0 ? "" : label }}
+    </p>
     <p v-else-if="marked">*</p>
   </div>
 </template>
@@ -32,6 +38,10 @@ export default {
       type: Number,
       required: true,
     },
+    cellsLocked: {
+      type: Boolean,
+      required: true,
+    },
   },
   data() {
     return {
@@ -42,7 +52,9 @@ export default {
   },
   computed: {
     backgroundColor() {
-      if ((this.coords[0] + this.coords[1]) % 2 === 0) {
+      if (this.isMine && this.revealed) {
+        return '#DC143C'
+      } else if ((this.coords[0] + this.coords[1]) % 2 === 0) {
         // dark
         if (this.revealed) {
           return "#E0DCB0";
@@ -59,22 +71,32 @@ export default {
       }
     },
     numColor() {
-        const numColors = ['','blue','darkgreen','red','purple','maroon','cyan','black','dim gray']
-        return numColors[Number(this.label)]
+      const numColors = [
+        "",
+        "blue",
+        "darkgreen",
+        "red",
+        "purple",
+        "maroon",
+        "cyan",
+        "black",
+        "dim gray",
+      ];
+      return numColors[Number(this.label)];
     },
     sideLengthPX() {
-        return this.sideLength.toString() + 'px'
-    }
+      return this.sideLength.toString() + "px";
+    },
   },
   methods: {
     reveal() {
-      if (!this.revealed && !this.marked) {
+      if (!this.revealed && !this.marked && !this.cellsLocked) {
         this.revealed = true;
         this.$emit("cellRevealed", this.coords, this.isMine, this.label);
       }
     },
     mark() {
-      if (!this.revealed) {
+      if (!this.revealed && !this.cellsLocked) {
         if (this.marked) {
           this.marked = false;
           this.$emit("updateMarked", 1);

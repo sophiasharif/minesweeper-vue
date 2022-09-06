@@ -23,7 +23,6 @@ export default ({
     },
     methods: {
         updateFlags(value) {
-            console.log(this.numFlags)
             this.numFlags = this.numFlags + value
         }
     }
