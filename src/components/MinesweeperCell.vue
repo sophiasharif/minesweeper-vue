@@ -26,10 +26,6 @@ export default {
       type: Array,
       required: true,
     },
-    label: {
-      type: String,
-      required: true,
-    },
     sideLength: {
       type: Number,
       required: true,
@@ -45,6 +41,7 @@ export default {
       marked: false,
       isLight: (this.coords[0] + this.coords[1]) % 2 === 0,
       isMine: false,
+      label: "D",
     };
   },
   computed: {

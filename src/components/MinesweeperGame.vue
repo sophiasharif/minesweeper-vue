@@ -11,7 +11,6 @@
         :key="getRefNum(x, y)"
         ref="cells"
         :coords="[x - 1, y - 1]"
-        :label="getLabel(x - 1, y - 1)"
         :side-length="cellSideLength"
         :cells-locked="cellsLocked"
         @cellRevealed="cellRevealed"
@@ -40,7 +39,7 @@ export default {
       // global controls for board size & mines:
       height: 10,
       width: 10,
-      numMines: 20,
+      numMines: 10,
       cellSideLength: 50, // cell side length in px used for sizing the board dynamically
       // trackers
       numRevealed: 0,
@@ -78,10 +77,6 @@ export default {
       return y * this.width + x;
     },
     getLabel(x, y) {
-      // if first click hasn't happened, assign default value
-      if (!this.firstClickHappened){
-        return "D"
-      }
       // if mine, set label to '*'
       if (this.field[y][x]) {
         return "*";
@@ -132,6 +127,7 @@ export default {
           const nRef = this.getRefNum(n[0], n[1])
           protectedCells.push(nRef)
         }
+        // set up field - cell that player clicked on & all adjacent cells will be safe
         this.field = createField(this.height, this.width, this.numMines, protectedCells)
         // update values of cells
         for (let y=0; y<this.height; y++){
@@ -140,7 +136,18 @@ export default {
             cell.isMine = this.field[y][x]
           }
         }
+        // update labels of cells 
+        for (let y=0; y<this.height; y++){
+          for (let x=0; x<this.width; x++){
+            const cell = this.$refs.cells[this.getRefNum(x, y)]
+            cell.label = this.getLabel(x,y)
+          }
+        }
+        // set label to 0 so that if block below runs
+        label = "0"
+        // update
         this.firstClickHappened = true
+
       }
       if (isMine) {
         // game is lost: show GameEnd element, lock cells, reveal unmarked mines
@@ -168,17 +175,20 @@ export default {
       }
     },
     updateMarked(value) {
+      // updates mine count in toolbar
       this.$refs.toolbar.updateFlags(value);
     },
     startGame() {
+      // reset trackers
       this.numRevealed = 0;
       this.gameStatus = "";
       this.cellsLocked = false;
-      // refresh mine count
-      this.$refs.toolbar.numFlags = this.numMines;
-      // refresh field
       this.firstClickHappened = false
+      // reset mine count
+      this.$refs.toolbar.numFlags = this.numMines;
+      // reset field
       this.refreshField += 1;
+      // reset cells
       const cellList = this.$refs.cells;
       cellList.forEach(function (cell) {
         cell.revealed = false;
