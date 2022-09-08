@@ -9,7 +9,7 @@
     <div v-for="y in height" :key="y">
       <minesweeper-cell
         v-for="x in width"
-        :key="getRefNum(x, y)"
+        :key="x*width+y"
         ref="cells"
         :coords="[x - 1, y - 1]"
         :side-length="cellSideLength"
@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import { createField } from "../helper";
+import { createField, getNeighbors, getIndex } from "../helper";
 import MinesweeperCell from "./MinesweeperCell.vue";
 import GameToolbar from "./GameToolbar.vue";
 import GameEnd from "./GameEnd.vue";
@@ -38,10 +38,10 @@ export default {
   data() {
     return {
       // global controls for board size & mines:
-      height: 20,
-      width: 24,
-      numMines: 100,
-      cellSideLength: 30, // cell side length in px used for sizing the board dynamically
+      height: 12,
+      width: 14,
+      numMines: 40,
+      cellSideLength: 50, // cell side length in px used for sizing the board dynamically
       // trackers
       numRevealed: 0,
       gameStatus: "",
@@ -71,18 +71,13 @@ export default {
     },
   },
   methods: {
-    getRefNum(x, y) {
-      // create a unique reference number for each cell that
-      // corresponds with its index in this.$refs.cells
-      return y * this.width + x;
-    },
-    getLabel(x, y) {
+    assignLabel(x, y) {
       // if mine, set label to '*'
       if (this.field[y][x]) {
         return "*";
       }
       // if not a mine, tally neighbors that are mines
-      const neighbors = this.getNeighbors(x, y);
+      const neighbors = getNeighbors(x, y, this.width, this.height);
       let adjacentMines = 0;
       for (let i = 0; i < neighbors.length; i++) {
         const r = neighbors[i][1];
@@ -93,39 +88,15 @@ export default {
       }
       return adjacentMines.toString();
     },
-    getNeighbors(x, y) {
-      // returns valid neighbors of cell with given coords
-      const potentialNeighbors = [
-        [x + 1, y + 1],
-        [x + 1, y],
-        [x + 1, y - 1],
-        [x, y + 1],
-        [x, y - 1],
-        [x - 1, y + 1],
-        [x - 1, y],
-        [x - 1, y - 1],
-      ];
-      const neighbors = [];
-      const w = this.width;
-      const h = this.height;
-      potentialNeighbors.forEach(function (coords) {
-        const r = coords[0];
-        const c = coords[1];
-        if (r >= 0 && c >= 0 && r < w && c < h) {
-          neighbors.push([r, c]);
-        }
-      });
-      return neighbors;
-    },
     cellRevealed(coords, isMine, label) {
       if (!this.firstClickHappened) {
         console.log("FIRST IF BLOCK: "+ isMine)
         // create a list of indices where there should not be mines
-        const clickedCellRefNum = this.getRefNum(coords[0], coords[1])
+        const clickedCellRefNum = getIndex(coords[0], coords[1], this.width) 
         let protectedCells = [clickedCellRefNum] // add ref num of clicked cell
-        const neighbors = this.getNeighbors(coords[0], coords[1])
+        const neighbors = getNeighbors(coords[0], coords[1], this.width, this.height)
         for (const n of neighbors) {
-          const nRef = this.getRefNum(n[0], n[1])
+          const nRef = getIndex(n[0], n[1], this.width)
           protectedCells.push(nRef)
         }
         // set up field - cell that player clicked on & all adjacent cells will be safe
@@ -133,15 +104,15 @@ export default {
         // update values of cells
         for (let y=0; y<this.height; y++){
           for (let x=0; x<this.width; x++){
-            const cell = this.$refs.cells[this.getRefNum(x, y)]
+            const cell = this.$refs.cells[getIndex(x, y, this.width)]
             cell.isMine = this.field[y][x]
           }
         }
         // update labels of cells 
         for (let y=0; y<this.height; y++){
           for (let x=0; x<this.width; x++){
-            const cell = this.$refs.cells[this.getRefNum(x, y)]
-            cell.label = this.getLabel(x,y)
+            const cell = this.$refs.cells[getIndex(x, y, this.width)]
+            cell.label = this.assignLabel(x,y)
           }
         }
         // set label to 0 so that if block below runs
@@ -166,10 +137,10 @@ export default {
         this.numRevealed += 1;
         // if there are no bombs around, reveal all neighbors
         if (label === "0") {
-          const neighbors = this.getNeighbors(coords[0], coords[1]);
+          const neighbors = getNeighbors(coords[0], coords[1], this.width, this.height);
           const that = this;
           neighbors.forEach(function (coords) {
-            const refNum = that.getRefNum(coords[0], coords[1]);
+            const refNum = getIndex(coords[0], coords[1], that.width);
             const neighborCell = that.$refs.cells[refNum];
             neighborCell.reveal();
           });

@@ -1,4 +1,33 @@
-export { createField };
+export { createField, getNeighbors, getIndex };
+
+function getNeighbors(x, y, fieldWidth, fieldHeight) {
+  // returns valid neighbors of cell with given coords
+  const potentialNeighbors = [
+    [x + 1, y + 1],
+    [x + 1, y],
+    [x + 1, y - 1],
+    [x, y + 1],
+    [x, y - 1],
+    [x - 1, y + 1],
+    [x - 1, y],
+    [x - 1, y - 1],
+  ];
+  const neighbors = [];
+  potentialNeighbors.forEach(function (coords) {
+    const r = coords[0];
+    const c = coords[1];
+    if (r >= 0 && c >= 0 && r < fieldWidth && c < fieldHeight) {
+      neighbors.push([r, c]);
+    }
+  });
+  return neighbors;
+}
+
+function getIndex(x, y, widthBoard) {
+  // create a unique reference number for each cell that
+  // corresponds with its index in this.$refs.cells
+  return y * widthBoard + x;
+}
 
 function protectedShuffle(mineList, cellsToAvoid) {
   const finalListLength = mineList.length
