@@ -3,7 +3,6 @@
     ref="toolbar"
     :num-mines="numMines"
     :width="boardWidth"
-    @setUpGame="setUpGame"
   ></game-toolbar>
   <div :style="{ width: boardWidth, height: boardHeight }">
     <div v-for="y in height" :key="y">
@@ -169,15 +168,6 @@ export default {
         cell.revealed = false;
         cell.marked = false;
       });
-    },
-    setUpGame(difficulty){
-      if (difficulty === 'easy') {
-        this.startGame(10, 8, 10, 50)
-      } else if (difficulty === 'medium') {
-        this.startGame(18, 14, 40, 40)
-      } else if (difficulty === 'hard') {
-        this.startGame(24, 20, 100, 30)
-      }
     }
   },
 };

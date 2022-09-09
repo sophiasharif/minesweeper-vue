@@ -1,5 +1,7 @@
 <template>
-  <minesweeper-game></minesweeper-game>
+  <div id="game">
+    <minesweeper-game class="game"></minesweeper-game>
+  </div>
 </template>
 
 <script>
@@ -9,4 +11,14 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+body {
+  background-color: #c5e1a5;
+  margin: auto;
+}
+#game {
+  display: block;
+  margin-left: 25%;
+  margin-top: 5vh;
+}
+</style>

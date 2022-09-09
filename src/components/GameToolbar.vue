@@ -1,10 +1,5 @@
 <template>
   <div class="toolbar" :style="{ width: width }">
-    <div>
-      <button @click="setUpGame('easy')">Easy</button>
-      <button @click="setUpGame('medium')">Medium</button>
-      <button @click="setUpGame('hard')">Hard</button>
-    </div>
     <p>Mines Left: {{ numFlags }}</p>
   </div>
 </template>
@@ -44,11 +39,8 @@ export default {
   line-height: 30px;
 }
 p {
-  text-align: right;
+  text-align: center;
   color: white;
   padding-right: 20px;
-}
-button {
-  float: left;
 }
 </style>
